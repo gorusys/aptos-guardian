@@ -1,0 +1,46 @@
+# Binaries
+aptos-guardian
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binary
+*.test
+
+# Output
+*.out
+coverage.html
+coverage.out
+
+# Go workspace
+go.work
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Local config and secrets (never commit)
+configs/local.yaml
+configs/*.local.yaml
+*.db
+*.db-journal
+.env
+.env.local
+.env.*.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build
+dist/
+build/
+
+# Logs
+*.log
+logs/
