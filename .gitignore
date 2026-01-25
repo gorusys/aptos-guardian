@@ -1,5 +1,5 @@
-# Binaries
-aptos-guardian
+# Binaries (binary at repo root only, not cmd/aptos-guardian/)
+/aptos-guardian
 *.exe
 *.exe~
 *.dll
