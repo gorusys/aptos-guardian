@@ -8,6 +8,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/gorusys/aptos-guardian/internal/config"
 	"github.com/gorusys/aptos-guardian/internal/util/version"
 )
 
@@ -40,11 +41,11 @@ func main() {
 }
 
 func run(ctx context.Context, configPath string) error {
-	f, err := os.Open(configPath)
+	cfg, err := config.Load(configPath)
 	if err != nil {
 		return fmt.Errorf("config: %w", err)
 	}
-	_ = f.Close()
+	_ = cfg
 	<-ctx.Done()
 	return nil
 }

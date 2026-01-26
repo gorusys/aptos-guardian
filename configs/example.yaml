@@ -1,0 +1,48 @@
+interval: "20s"
+
+server:
+  host: "0.0.0.0"
+  port: 8080
+  metrics_path: "/metrics"
+  enable_pprof: false
+  pprof_bind: "127.0.0.1:6060"
+
+thresholds:
+  latency_warn_ms: 600
+  latency_crit_ms: 1500
+  consecutive_failures_for_incident: 3
+  recoveries_for_close: 2
+
+discord:
+  enabled: false
+  application_id: ""
+  bot_token: ""
+  guild_id: ""
+  alert_channel_id: ""
+  mention: ""
+  dm_refuse_msg: "Please post in the support channel so the team can help. Mods never DM first."
+
+# Optional: Alchemy — uncomment and set APTOS_GUARDIAN_ALCHEMY_RPC_URL if you have an API key.
+# rpc_providers:
+#   - name: "alchemy"
+#     url: "${APTOS_GUARDIAN_ALCHEMY_RPC_URL}"
+#     timeout_ms: 4000
+#     tags: { tier: "premium" }
+
+rpc_providers:
+  - name: "aptoslabs"
+    url: "https://fullnode.mainnet.aptoslabs.com/v1"
+    timeout_ms: 4000
+    tags: { tier: "public" }
+
+dapps:
+  - name: "aptos-explorer"
+    url: "https://explorer.aptoslabs.com"
+    timeout_ms: 4000
+    tags: { type: "infra" }
+  - name: "aptos-ecosystem-directory"
+    url: "https://aptosnetwork.com/ecosystem/directory"
+    timeout_ms: 4000
+    tags: { type: "directory" }
+
+store_path: "data/guardian.db"
