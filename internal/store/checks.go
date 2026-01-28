@@ -37,7 +37,7 @@ func (s *Store) RecentChecks(ctx context.Context, entityType, entityName string,
 	}
 	rows, err := s.db.QueryContext(ctx,
 		`SELECT id, entity_type, entity_name, success, latency_ms, error_category, created_at
-		 FROM checks WHERE entity_type = ? AND entity_name = ? ORDER BY created_at DESC LIMIT ?`,
+		 FROM checks WHERE entity_type = ? AND entity_name = ? ORDER BY id DESC LIMIT ?`,
 		entityType, entityName, limit)
 	if err != nil {
 		return nil, err
@@ -46,12 +46,14 @@ func (s *Store) RecentChecks(ctx context.Context, entityType, entityName string,
 	var out []CheckRow
 	for rows.Next() {
 		var c CheckRow
+		var successInt int64
 		var lat sql.NullInt64
 		var errCat sql.NullString
 		var createdAt string
-		if err := rows.Scan(&c.ID, &c.EntityType, &c.EntityName, &c.Success, &lat, &errCat, &createdAt); err != nil {
+		if err := rows.Scan(&c.ID, &c.EntityType, &c.EntityName, &successInt, &lat, &errCat, &createdAt); err != nil {
 			return nil, err
 		}
+		c.Success = successInt != 0
 		if lat.Valid {
 			c.LatencyMs = lat
 		}

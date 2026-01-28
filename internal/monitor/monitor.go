@@ -12,10 +12,16 @@ import (
 	"github.com/gorusys/aptos-guardian/internal/store"
 )
 
+type IncidentProcessor interface {
+	ProcessRPCResult(ctx context.Context, name, url string, success bool, latencyMs int64) (opened, closed bool, err error)
+	ProcessDappResult(ctx context.Context, name, url string, success bool) (opened, closed bool, err error)
+}
+
 type Runner struct {
-	cfg   *config.Config
-	store *store.Store
-	log   *slog.Logger
+	cfg      *config.Config
+	store    *store.Store
+	engine   IncidentProcessor
+	log      *slog.Logger
 }
 
 func NewRunner(cfg *config.Config, st *store.Store, log *slog.Logger) *Runner {
@@ -23,6 +29,10 @@ func NewRunner(cfg *config.Config, st *store.Store, log *slog.Logger) *Runner {
 		log = slog.Default()
 	}
 	return &Runner{cfg: cfg, store: st, log: log}
+}
+
+func (r *Runner) SetIncidentEngine(engine IncidentProcessor) {
+	r.engine = engine
 }
 
 func (r *Runner) Run(ctx context.Context) {
@@ -73,6 +83,11 @@ func (r *Runner) checkRPC(ctx context.Context, p *config.RPCProvider) {
 		r.log.Error("insert rpc check", "provider", p.Name, "err", err)
 		return
 	}
+	if r.engine != nil {
+		if _, _, err := r.engine.ProcessRPCResult(ctx, p.Name, p.URL, res.Success, res.LatencyMs); err != nil {
+			r.log.Error("process rpc incident", "provider", p.Name, "err", err)
+		}
+	}
 	r.log.Debug("rpc check", "provider", p.Name, "success", res.Success, "latency_ms", res.LatencyMs, "error", errCat)
 }
 
@@ -91,6 +106,11 @@ func (r *Runner) checkDapp(ctx context.Context, d *config.DappEndpoint) {
 	if err := r.store.InsertCheck(ctx, "dapp", d.Name, res.Success, latPtr, errCat); err != nil {
 		r.log.Error("insert dapp check", "dapp", d.Name, "err", err)
 		return
+	}
+	if r.engine != nil {
+		if _, _, err := r.engine.ProcessDappResult(ctx, d.Name, d.URL, res.Success); err != nil {
+			r.log.Error("process dapp incident", "dapp", d.Name, "err", err)
+		}
 	}
 	r.log.Debug("dapp check", "dapp", d.Name, "success", res.Success, "latency_ms", res.LatencyMs)
 }
