@@ -144,3 +144,17 @@ func TestListReports(t *testing.T) {
 		t.Errorf("status = %d", rec.Code)
 	}
 }
+
+func TestRouter_Metrics(t *testing.T) {
+	h := setupHandlers(t)
+	mux := Router(h, "/metrics", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte("# metrics\n"))
+	}))
+	req := httptest.NewRequest(http.MethodGet, "/metrics", nil)
+	rec := httptest.NewRecorder()
+	mux.ServeHTTP(rec, req)
+	if rec.Code != http.StatusOK {
+		t.Errorf("metrics status = %d", rec.Code)
+	}
+}
