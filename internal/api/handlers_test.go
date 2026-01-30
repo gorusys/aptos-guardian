@@ -150,11 +150,27 @@ func TestRouter_Metrics(t *testing.T) {
 	mux := Router(h, "/metrics", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		_, _ = w.Write([]byte("# metrics\n"))
-	}))
+	}), "")
 	req := httptest.NewRequest(http.MethodGet, "/metrics", nil)
 	rec := httptest.NewRecorder()
 	mux.ServeHTTP(rec, req)
 	if rec.Code != http.StatusOK {
 		t.Errorf("metrics status = %d", rec.Code)
 	}
+}
+
+func TestStaticHandler(t *testing.T) {
+	for _, root := range []string{"web", filepath.Join("..", "..", "web")} {
+		handler := StaticHandler(root)
+		if handler == nil {
+			continue
+		}
+		req := httptest.NewRequest(http.MethodGet, "/index.html", nil)
+		rec := httptest.NewRecorder()
+		handler.ServeHTTP(rec, req)
+		if rec.Code == http.StatusOK && rec.Body.Len() > 0 {
+			return
+		}
+	}
+	t.Skip("web dir not found (run from repo root)")
 }

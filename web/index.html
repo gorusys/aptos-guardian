@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Aptos Guardian – Status</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>Aptos Guardian</h1>
+    <p class="tagline">Infra and Wallet Reliability</p>
+  </header>
+  <main>
+    <section class="recommended">
+      <h2>Recommended RPC</h2>
+      <p id="recommended-rpc" class="value">—</p>
+    </section>
+    <section>
+      <h2>RPC Providers</h2>
+      <div id="rpc-cards" class="cards"></div>
+    </section>
+    <section>
+      <h2>dApps</h2>
+      <div id="dapp-cards" class="cards"></div>
+    </section>
+    <section>
+      <h2>Open Incidents</h2>
+      <ul id="incidents-list"></ul>
+    </section>
+    <section class="quick-fixes">
+      <h2>Quick Fixes</h2>
+      <ul>
+        <li><strong>Gas fees:</strong> Ensure you have APT for gas; retry during low congestion.</li>
+        <li><strong>Staking unlock:</strong> Use the same wallet and wait for the unlock period to end.</li>
+        <li><strong>Switch RPC:</strong> Use the recommended RPC above or try another provider from the list.</li>
+        <li><strong>Scam safety:</strong> Mods/admins never DM first; support only in official channels.</li>
+      </ul>
+    </section>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>

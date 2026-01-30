@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-func Router(h *Handlers, metricsPath string, metricsHandler http.Handler) http.Handler {
+func Router(h *Handlers, metricsPath string, metricsHandler http.Handler, webRoot string) http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/healthz", h.Healthz)
 	mux.HandleFunc("/v1/status", h.Status)
@@ -15,6 +15,9 @@ func Router(h *Handlers, metricsPath string, metricsHandler http.Handler) http.H
 	mux.HandleFunc("/v1/reports", h.ListReports)
 	if metricsPath != "" && metricsHandler != nil {
 		mux.Handle(metricsPath, metricsHandler)
+	}
+	if webRoot != "" {
+		mux.Handle("/", StaticHandler(webRoot))
 	}
 	return mux
 }
