@@ -1,0 +1,30 @@
+services:
+  aptos-guardian:
+    build: .
+    image: aptos-guardian:dev
+    container_name: aptos-guardian
+    ports:
+      - "8080:8080"
+    volumes:
+      - guardian-data:/app/data
+    environment:
+      - APTOS_GUARDIAN_STORE_PATH=/app/data/guardian.db
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:v2.48.0
+    container_name: aptos-guardian-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./deploy/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --web.enable-lifecycle
+    restart: unless-stopped
+    profiles:
+      - monitoring
+
+volumes:
+  guardian-data:
