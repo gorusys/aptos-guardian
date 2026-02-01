@@ -9,9 +9,11 @@ import (
 )
 
 type Engine struct {
-	store *store.Store
-	cfg   *config.Config
-	log   *slog.Logger
+	store          *store.Store
+	cfg            *config.Config
+	log            *slog.Logger
+	OnIncidentOpen   func(ctx context.Context, inc *store.Incident)
+	OnIncidentClosed func(ctx context.Context, inc *store.Incident)
 }
 
 func NewEngine(st *store.Store, cfg *config.Config, log *slog.Logger) *Engine {
@@ -45,6 +47,7 @@ func (e *Engine) ProcessRPCResult(ctx context.Context, name, url string, success
 					return false, false, closeErr
 				}
 				_ = e.store.AddIncidentUpdate(ctx, openID, summary)
+				e.alertClosed(ctx, openID)
 				e.log.Info("incident closed", "entity_type", "rpc", "entity_name", name, "incident_id", openID)
 				return false, true, nil
 			}
@@ -61,6 +64,7 @@ func (e *Engine) ProcessRPCResult(ctx context.Context, name, url string, success
 				return false, false, openErr
 			}
 			_ = e.store.AddIncidentUpdate(ctx, id, summary)
+			e.alertOpen(ctx, id)
 			e.log.Info("incident opened", "entity_type", "rpc", "entity_name", name, "incident_id", id, "severity", store.SeverityCrit)
 			return true, false, nil
 		}
@@ -74,6 +78,7 @@ func (e *Engine) ProcessRPCResult(ctx context.Context, name, url string, success
 			return false, false, openErr
 		}
 		_ = e.store.AddIncidentUpdate(ctx, id, summary)
+		e.alertOpen(ctx, id)
 		e.log.Info("incident opened", "entity_type", "rpc", "entity_name", name, "incident_id", id, "severity", store.SeverityCrit)
 		return true, false, nil
 	}
@@ -84,6 +89,7 @@ func (e *Engine) ProcessRPCResult(ctx context.Context, name, url string, success
 			return false, false, openErr
 		}
 		_ = e.store.AddIncidentUpdate(ctx, id, summary)
+		e.alertOpen(ctx, id)
 		e.log.Info("incident opened", "entity_type", "rpc", "entity_name", name, "incident_id", id, "severity", store.SeverityWarn)
 		return true, false, nil
 	}
@@ -112,6 +118,7 @@ func (e *Engine) ProcessDappResult(ctx context.Context, name, url string, succes
 					return false, false, closeErr
 				}
 				_ = e.store.AddIncidentUpdate(ctx, openID, summary)
+				e.alertClosed(ctx, openID)
 				e.log.Info("incident closed", "entity_type", "dapp", "entity_name", name, "incident_id", openID)
 				return false, true, nil
 			}
@@ -128,11 +135,34 @@ func (e *Engine) ProcessDappResult(ctx context.Context, name, url string, succes
 				return false, false, openErr
 			}
 			_ = e.store.AddIncidentUpdate(ctx, id, summary)
+			e.alertOpen(ctx, id)
 			e.log.Info("incident opened", "entity_type", "dapp", "entity_name", name, "incident_id", id)
 			return true, false, nil
 		}
 	}
 	return false, false, nil
+}
+
+func (e *Engine) alertOpen(ctx context.Context, id int64) {
+	if e.OnIncidentOpen == nil {
+		return
+	}
+	inc, err := e.store.GetIncident(ctx, id)
+	if err != nil {
+		return
+	}
+	e.OnIncidentOpen(ctx, inc)
+}
+
+func (e *Engine) alertClosed(ctx context.Context, id int64) {
+	if e.OnIncidentClosed == nil {
+		return
+	}
+	inc, err := e.store.GetIncident(ctx, id)
+	if err != nil {
+		return
+	}
+	e.OnIncidentClosed(ctx, inc)
 }
 
 func countConsecutiveSuccess(checks []store.CheckRow, success bool) int {
