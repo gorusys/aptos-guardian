@@ -18,10 +18,24 @@ func StaticHandler(webRoot string) http.Handler {
 		}
 		path := r.URL.Path
 		if path == "/" || path == "" {
-			path = "/index.html"
+			// Serve index.html without redirect; FileServer redirects /index.html -> / causing a loop
+			f, err := fs.Open("index.html")
+			if err != nil {
+				http.NotFound(w, r)
+				return
+			}
+			defer f.Close()
+			stat, err := f.Stat()
+			if err != nil || stat.IsDir() {
+				http.NotFound(w, r)
+				return
+			}
+			w.Header().Set("Content-Type", "text/html; charset=utf-8")
+			http.ServeContent(w, r, "index.html", stat.ModTime(), f)
+			return
 		}
 		path = filepath.Clean(path)
-		if path[0] != '/' {
+		if len(path) > 0 && path[0] != '/' {
 			path = "/" + path
 		}
 		r.URL.Path = path
