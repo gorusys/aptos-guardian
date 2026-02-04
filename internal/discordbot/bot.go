@@ -9,38 +9,45 @@ import (
 )
 
 const (
-	cmdStatus  = "status"
-	cmdRPC     = "rpc"
-	cmdDapp    = "dapp"
-	cmdFix     = "fix"
-	cmdReport  = "report"
+	cmdStatus = "status"
+	cmdRPC    = "rpc"
+	cmdDapp   = "dapp"
+	cmdFix    = "fix"
+	cmdReport = "report"
 )
+
+type CommandContextBuilder func(ctx context.Context) (*CommandContext, error)
 
 type Bot struct {
 	session *discordgo.Session
-	cfg    *BotConfig
-	ctx    *CommandContext
-	log    *slog.Logger
+	cfg     *BotConfig
+	build   CommandContextBuilder
+	log     *slog.Logger
 }
 
 type BotConfig struct {
-	ApplicationID string
-	BotToken      string
-	GuildID       string
-	DMRefuseMsg   string
+	ApplicationID  string
+	BotToken       string
+	GuildID        string
+	AlertChannelID string
+	DMRefuseMsg    string
 }
 
-func NewBot(cfg *BotConfig, ctx *CommandContext, log *slog.Logger) (*Bot, error) {
-	if log == nil {
-		log = slog.Default()
-	}
+func NewBot(cfg *BotConfig, build CommandContextBuilder, log *slog.Logger) (*Bot, error) {
 	s, err := discordgo.New("Bot " + cfg.BotToken)
 	if err != nil {
 		return nil, err
 	}
-	b := &Bot{session: s, cfg: cfg, ctx: ctx, log: log}
+	return NewBotWithSession(s, cfg, build, log), nil
+}
+
+func NewBotWithSession(s *discordgo.Session, cfg *BotConfig, build CommandContextBuilder, log *slog.Logger) *Bot {
+	if log == nil {
+		log = slog.Default()
+	}
+	b := &Bot{session: s, cfg: cfg, build: build, log: log}
 	s.AddHandler(b.handleInteraction)
-	return b, nil
+	return b
 }
 
 func (b *Bot) Open() error {
@@ -99,7 +106,12 @@ func (b *Bot) handleInteraction(s *discordgo.Session, i *discordgo.InteractionCr
 	for _, o := range data.Options {
 		opts[o.Name] = o.StringValue()
 	}
-	content, ephemeral := RunCommand(context.Background(), data.Name, opts, b.ctx)
+	cmdCtx, err := b.build(context.Background())
+	if err != nil {
+		b.respondErr(s, i, "Failed to build context.")
+		return
+	}
+	content, ephemeral := RunCommand(context.Background(), data.Name, opts, cmdCtx)
 	if ephemeral {
 		b.respondEphemeral(s, i, content)
 	} else {

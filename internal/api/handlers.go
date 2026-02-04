@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/gorusys/aptos-guardian/internal/incidents"
+	"github.com/gorusys/aptos-guardian/internal/metrics"
 	"github.com/gorusys/aptos-guardian/internal/store"
 )
 
@@ -30,25 +31,25 @@ func (h *Handlers) Healthz(w http.ResponseWriter, r *http.Request) {
 }
 
 type StatusResponse struct {
-	RecommendedProvider string                 `json:"recommended_provider"`
-	RPCProviders        []ProviderStatus       `json:"rpc_providers"`
-	Dapps               []DappStatus          `json:"dapps"`
-	OpenIncidents       []IncidentSummary     `json:"open_incidents"`
+	RecommendedProvider string            `json:"recommended_provider"`
+	RPCProviders        []ProviderStatus  `json:"rpc_providers"`
+	Dapps               []DappStatus      `json:"dapps"`
+	OpenIncidents       []IncidentSummary `json:"open_incidents"`
 }
 
 type ProviderStatus struct {
-	Name       string  `json:"name"`
-	URL        string  `json:"url"`
-	Healthy    bool    `json:"healthy"`
-	LatencyMs  *int64  `json:"latency_ms,omitempty"`
-	LastError  string  `json:"last_error,omitempty"`
+	Name      string `json:"name"`
+	URL       string `json:"url"`
+	Healthy   bool   `json:"healthy"`
+	LatencyMs *int64 `json:"latency_ms,omitempty"`
+	LastError string `json:"last_error,omitempty"`
 }
 
 type DappStatus struct {
-	Name      string  `json:"name"`
-	URL       string  `json:"url"`
-	Healthy   bool    `json:"healthy"`
-	LatencyMs *int64  `json:"latency_ms,omitempty"`
+	Name      string `json:"name"`
+	URL       string `json:"url"`
+	Healthy   bool   `json:"healthy"`
+	LatencyMs *int64 `json:"latency_ms,omitempty"`
 }
 
 type IncidentSummary struct {
@@ -265,6 +266,7 @@ func (h *Handlers) Report(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	metrics.IncReportsTotal()
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	_ = json.NewEncoder(w).Encode(map[string]int64{"id": id})

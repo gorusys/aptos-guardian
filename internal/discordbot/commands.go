@@ -11,10 +11,10 @@ import (
 )
 
 type StatusProvider struct {
-	Name       string
-	Healthy    bool
-	LatencyMs  int64
-	LastError  string
+	Name      string
+	Healthy   bool
+	LatencyMs int64
+	LastError string
 }
 
 type DappStatus struct {
@@ -24,14 +24,14 @@ type DappStatus struct {
 }
 
 type CommandContext struct {
-	Store  *store.Store
-	Engine *incidents.Engine
-	RPCNames []string
-	DappNames []string
+	Store          *store.Store
+	Engine         *incidents.Engine
+	RPCNames       []string
+	DappNames      []string
 	RecommendedRPC string
-	RPCStatuses   []StatusProvider
-	DappStatuses  []DappStatus
-	OpenIncidents []store.Incident
+	RPCStatuses    []StatusProvider
+	DappStatuses   []DappStatus
+	OpenIncidents  []store.Incident
 }
 
 func (c *CommandContext) BuildStatusResponse(ctx context.Context) string {

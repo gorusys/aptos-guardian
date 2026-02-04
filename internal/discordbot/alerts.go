@@ -10,7 +10,7 @@ import (
 )
 
 type Alerter struct {
-	session       *discordgo.Session
+	session        *discordgo.Session
 	alertChannelID string
 	mention        string
 	log            *slog.Logger

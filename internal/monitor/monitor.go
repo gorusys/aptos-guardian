@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/gorusys/aptos-guardian/internal/config"
+	"github.com/gorusys/aptos-guardian/internal/metrics"
 	"github.com/gorusys/aptos-guardian/internal/monitor/httpcheck"
 	"github.com/gorusys/aptos-guardian/internal/monitor/rpc"
 	"github.com/gorusys/aptos-guardian/internal/store"
@@ -18,10 +19,10 @@ type IncidentProcessor interface {
 }
 
 type Runner struct {
-	cfg      *config.Config
-	store    *store.Store
-	engine   IncidentProcessor
-	log      *slog.Logger
+	cfg    *config.Config
+	store  *store.Store
+	engine IncidentProcessor
+	log    *slog.Logger
 }
 
 func NewRunner(cfg *config.Config, st *store.Store, log *slog.Logger) *Runner {
@@ -83,6 +84,7 @@ func (r *Runner) checkRPC(ctx context.Context, p *config.RPCProvider) {
 		r.log.Error("insert rpc check", "provider", p.Name, "err", err)
 		return
 	}
+	metrics.RecordCheck("rpc", p.Name, res.Success, res.LatencyMs)
 	if r.engine != nil {
 		if _, _, err := r.engine.ProcessRPCResult(ctx, p.Name, p.URL, res.Success, res.LatencyMs); err != nil {
 			r.log.Error("process rpc incident", "provider", p.Name, "err", err)
@@ -107,6 +109,7 @@ func (r *Runner) checkDapp(ctx context.Context, d *config.DappEndpoint) {
 		r.log.Error("insert dapp check", "dapp", d.Name, "err", err)
 		return
 	}
+	metrics.RecordCheck("dapp", d.Name, res.Success, res.LatencyMs)
 	if r.engine != nil {
 		if _, _, err := r.engine.ProcessDappResult(ctx, d.Name, d.URL, res.Success); err != nil {
 			r.log.Error("process dapp incident", "dapp", d.Name, "err", err)

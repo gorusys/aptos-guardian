@@ -9,9 +9,9 @@ import (
 )
 
 type Engine struct {
-	store          *store.Store
-	cfg            *config.Config
-	log            *slog.Logger
+	store            *store.Store
+	cfg              *config.Config
+	log              *slog.Logger
 	OnIncidentOpen   func(ctx context.Context, inc *store.Incident)
 	OnIncidentClosed func(ctx context.Context, inc *store.Incident)
 }

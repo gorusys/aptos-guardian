@@ -97,10 +97,10 @@ func TestBuildFixResponse(t *testing.T) {
 
 func TestRunCommand(t *testing.T) {
 	cc := &CommandContext{
-		RPCStatuses: []StatusProvider{{Name: "a", Healthy: true, LatencyMs: 10}},
+		RPCStatuses:  []StatusProvider{{Name: "a", Healthy: true, LatencyMs: 10}},
 		DappStatuses: []DappStatus{{Name: "d", Healthy: true}},
-		RPCNames:    []string{"a"},
-		DappNames:   []string{"d"},
+		RPCNames:     []string{"a"},
+		DappNames:    []string{"d"},
 	}
 	ctx := context.Background()
 	content, ep := RunCommand(ctx, "status", nil, cc)
@@ -136,7 +136,7 @@ func TestRunCommand(t *testing.T) {
 func TestRunCommand_DappOption(t *testing.T) {
 	cc := &CommandContext{
 		DappStatuses: []DappStatus{{Name: "aptos-explorer", Healthy: true, LatencyMs: 50}},
-		DappNames:   []string{"aptos-explorer"},
+		DappNames:    []string{"aptos-explorer"},
 	}
 	ctx := context.Background()
 	content, _ := RunCommand(ctx, "dapp", map[string]string{"name": "aptos-explorer"}, cc)
@@ -148,7 +148,7 @@ func TestRunCommand_DappOption(t *testing.T) {
 func TestOpenIncidentInDappResponse(t *testing.T) {
 	cc := &CommandContext{
 		DappStatuses: []DappStatus{{Name: "explorer", Healthy: false, LatencyMs: 0}},
-		DappNames:   []string{"explorer"},
+		DappNames:    []string{"explorer"},
 		OpenIncidents: []store.Incident{
 			{EntityType: "dapp", EntityName: "explorer", Summary: "Outage", StartedAt: time.Now()},
 		},
