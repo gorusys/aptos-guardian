@@ -29,9 +29,7 @@ jobs:
         run: go test ./...
 
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v4
-        with:
-          version: latest
+        uses: golangci/golangci-lint-action@1e7e51e771db61008b38414a730f564565cf7c20
 
       - name: Build
         run: go build -o aptos-guardian ./cmd/aptos-guardian

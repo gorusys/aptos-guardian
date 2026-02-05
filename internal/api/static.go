@@ -24,7 +24,7 @@ func StaticHandler(webRoot string) http.Handler {
 				http.NotFound(w, r)
 				return
 			}
-			defer f.Close()
+			defer func() { _ = f.Close() }()
 			stat, err := f.Stat()
 			if err != nil || stat.IsDir() {
 				http.NotFound(w, r)
